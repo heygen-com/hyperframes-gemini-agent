@@ -1,0 +1,17 @@
+# Render scratch — the sandbox writes here at runtime; never commit
+workspace/output/
+workspace/last_composition/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local secrets / env
+.env
+*.local
+
+# OS / editor
+.DS_Store
+*.swp

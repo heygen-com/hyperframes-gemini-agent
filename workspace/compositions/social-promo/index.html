@@ -1,0 +1,121 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[
+    {"id":"brand_name","type":"string","label":"Brand name","default":"Brew"},
+    {"id":"headline","type":"string","label":"Headline","default":"Coffee, perfected.","maxLength":40},
+    {"id":"subheadline","type":"string","label":"Subheadline","default":"Your morning ritual, upgraded.","maxLength":60},
+    {"id":"cta_text","type":"string","label":"Call to action","default":"Get the app","maxLength":24},
+    {"id":"bg_color","type":"color","label":"Background color","default":"#0e0b08"},
+    {"id":"accent_color","type":"color","label":"Accent color","default":"#e8a44c"},
+    {"id":"text_color","type":"color","label":"Text color","default":"#ffffff"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>social-promo</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        font-family: Helvetica, Arial, sans-serif;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        padding: 0 100px;
+        box-sizing: border-box;
+        text-align: center;
+      }
+      #brand {
+        font-size: 44px;
+        font-weight: 600;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        opacity: 0;
+      }
+      #headline {
+        font-size: 132px;
+        font-weight: 800;
+        line-height: 1.05;
+        opacity: 0;
+      }
+      #subheadline {
+        font-size: 52px;
+        font-weight: 400;
+        opacity: 0;
+      }
+      #cta {
+        margin-top: 60px;
+        font-size: 48px;
+        font-weight: 700;
+        padding: 32px 72px;
+        border-radius: 999px;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="stage"
+      data-composition-id="social-promo"
+      data-start="0"
+      data-width="1080"
+      data-height="1920"
+      data-duration="6"
+      data-fps="30"
+    >
+      <div id="brand" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
+      <div id="headline" class="clip" data-start="0" data-duration="6" data-track-index="1"></div>
+      <div id="subheadline" class="clip" data-start="0" data-duration="6" data-track-index="2"></div>
+      <div id="cta" class="clip" data-start="0" data-duration="6" data-track-index="3"></div>
+
+      <script>
+        // Read the resolved variables once, at the top.
+        const v = window.__hyperframes.getVariables();
+        const {
+          brand_name = "Brew",
+          headline = "Coffee, perfected.",
+          subheadline = "Your morning ritual, upgraded.",
+          cta_text = "Get the app",
+          bg_color = "#0e0b08",
+          accent_color = "#e8a44c",
+          text_color = "#ffffff",
+        } = v;
+
+        document.body.style.background = bg_color;
+        const $ = (id) => document.getElementById(id);
+        $("brand").textContent = brand_name;
+        $("brand").style.color = accent_color;
+        $("headline").textContent = headline;
+        $("headline").style.color = text_color;
+        $("subheadline").textContent = subheadline;
+        $("subheadline").style.color = text_color;
+        $("cta").textContent = cta_text;
+        $("cta").style.background = accent_color;
+        $("cta").style.color = bg_color;
+
+        // Paused timeline, keyed in seconds; HyperFrames seeks it.
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#brand", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 0.2);
+        tl.fromTo("#headline", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.4)" }, 0.6);
+        tl.fromTo("#subheadline", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 1.2);
+        tl.fromTo("#cta", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 1.7);
+        // Hold, then a gentle exit so loops feel intentional.
+        tl.to(["#brand", "#headline", "#subheadline", "#cta"], { opacity: 0, duration: 0.5, ease: "power1.in" }, 5.4);
+        window.__timelines["social-promo"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

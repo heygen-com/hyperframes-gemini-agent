@@ -1,0 +1,24 @@
+{
+  "id": "explainer",
+  "title": "Explainer",
+  "description": "A landscape 16:9 step-by-step explainer: a title, three numbered steps that reveal in sequence, and a closing summary line. Good for how-it-works and onboarding content.",
+  "use_case": "Explain a process, workflow, or how a product works in a few steps.",
+  "aspect_ratio": "16:9",
+  "width": 1920,
+  "height": 1080,
+  "duration_seconds": 14,
+  "fps": 30,
+  "tags": ["explainer", "how-it-works", "steps", "onboarding", "landscape", "tutorial"],
+  "entry": "index.html",
+  "variables_note": "data-composition-variables in index.html is the source of truth; this list mirrors it for routing.",
+  "variables": [
+    { "id": "title", "type": "string", "label": "Title", "default": "How it works" },
+    { "id": "step_1", "type": "string", "label": "Step 1", "default": "Connect your data source" },
+    { "id": "step_2", "type": "string", "label": "Step 2", "default": "Pick a template" },
+    { "id": "step_3", "type": "string", "label": "Step 3", "default": "Generate and share" },
+    { "id": "summary", "type": "string", "label": "Closing line", "default": "Three steps. That is it." },
+    { "id": "bg_color", "type": "color", "label": "Background color", "default": "#101418" },
+    { "id": "accent_color", "type": "color", "label": "Accent color", "default": "#42d6a4" },
+    { "id": "text_color", "type": "color", "label": "Text color", "default": "#eef2f0" }
+  ]
+}

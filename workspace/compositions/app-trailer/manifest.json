@@ -1,0 +1,25 @@
+{
+  "id": "app-trailer",
+  "title": "App Trailer",
+  "description": "A landscape 16:9 three-scene product trailer: an opening app name + tagline, a staggered three-feature reveal, and a closing call-to-action. Highest demo value for SaaS/app products.",
+  "use_case": "Product or feature trailer for an app, SaaS tool, or website.",
+  "aspect_ratio": "16:9",
+  "width": 1920,
+  "height": 1080,
+  "duration_seconds": 12,
+  "fps": 30,
+  "tags": ["product", "trailer", "saas", "app", "landscape", "features"],
+  "entry": "index.html",
+  "variables_note": "data-composition-variables in index.html is the source of truth; this list mirrors it for routing.",
+  "variables": [
+    { "id": "app_name", "type": "string", "label": "App name", "default": "Strand" },
+    { "id": "tagline", "type": "string", "label": "Tagline", "default": "Notes that think with you." },
+    { "id": "feature_1", "type": "string", "label": "Feature 1", "default": "Capture ideas in a tap" },
+    { "id": "feature_2", "type": "string", "label": "Feature 2", "default": "Linked, searchable, yours" },
+    { "id": "feature_3", "type": "string", "label": "Feature 3", "default": "Works everywhere you do" },
+    { "id": "cta_text", "type": "string", "label": "Call to action", "default": "Try Strand free" },
+    { "id": "bg_color", "type": "color", "label": "Background color", "default": "#0b0d12" },
+    { "id": "accent_color", "type": "color", "label": "Accent color", "default": "#7c9cff" },
+    { "id": "text_color", "type": "color", "label": "Text color", "default": "#f2f4f8" }
+  ]
+}

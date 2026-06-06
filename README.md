@@ -1,0 +1,154 @@
+# HyperFrames Video Studio — a Gemini Managed Agent
+
+Turn a text prompt into a finished, playable video.
+
+You describe what you want ("a 30-second trailer for my note-taking app, calm
+pastel palette") and the agent writes the copy, picks the colors, and renders a
+real MP4 on HeyGen's cloud. It hands back a URL you can play right away.
+
+Built on the [Gemini Managed Agents API](https://ai.google.dev/gemini-api/docs/managed-agents-quickstart).
+The agent runs in Google's hosted sandbox; the video render runs on HeyGen's
+infrastructure. No Chrome, ffmpeg, or render farm of your own required.
+
+## How it works
+
+The agent is a thin authoring-and-dispatch layer. It runs four steps:
+
+1. **Pick a starter** — choose one of three built-in compositions based on what
+   you asked for (a vertical social promo, a landscape app trailer, or a
+   step-by-step explainer).
+2. **Write the content** — decide the headline, the feature lines, the
+   voiceover copy, and the colors from your prompt.
+3. **Customize** — fill those values into the chosen starter's variables and
+   validate them.
+4. **Render and return** — send it to HeyGen's render API and give you back the
+   video URL.
+
+The heavy lifting (browser, encoding, hosting) all happens on HeyGen's side.
+The agent never renders locally.
+
+## Starter compositions
+
+| Starter | Aspect | Length | Best for |
+|---|---|---|---|
+| `social-promo` | 9:16 | ~6s | Short vertical social ad or teaser |
+| `app-trailer` | 16:9 | ~12s | Product / feature trailer for an app or SaaS |
+| `explainer` | 16:9 | ~14s | How-it-works, onboarding, tutorials |
+
+Each starter lives in `workspace/compositions/<id>/` as a self-contained
+HyperFrames project. The parts you can change (text, colors) are declared as
+[composition variables](https://hyperframes.heygen.com) on the composition's
+`<html>` element via `data-composition-variables`, and mirrored in a
+`manifest.json` the agent reads when routing.
+
+Each starter **vendors GSAP locally** (`vendor/gsap.min.js`) rather than loading
+it from a CDN. On the cloud-render path a parser-blocking `<script src="https://…">`
+in `<head>` fails open if the CDN is slow or down, which can stall the render
+(`window.__hf not ready`). Bundling the library in the zip removes that network
+dependency. Keep it this way — don't switch starters back to a CDN `<script>`.
+
+## Setup
+
+### 1. A HeyGen API key
+
+The render step calls HeyGen's API, so the sandbox needs a HeyGen key, injected
+as the `HEYGEN_API_KEY` environment variable. Two ways to provide it:
+
+- **Bring your own key (recommended)** — paste your own HeyGen API key.
+  Renders bill to your HeyGen account. Don't have one? Sign up at
+  [app.heygen.com](https://app.heygen.com).
+- **Shared demo key** — for launch-week trials only, with a hard per-day cap.
+
+The key is read from the environment at render time and never printed or logged.
+
+### 2. A Gemini API key
+
+Invoking the agent uses your Gemini API key (`x-goog-api-key`). Google bills the
+interaction tokens; HeyGen bills the render.
+
+## Using it
+
+### From the AI Studio Playground
+
+Open AI Studio → Agents, pick **HyperFrames Video Studio**, set your HeyGen key,
+and type a prompt.
+
+### From the Interactions API
+
+```bash
+python3 generate_payload.py --prompt "make a 15s social promo for Brew, dark theme" \
+  | curl -sS -X POST https://generativelanguage.googleapis.com/v1beta/interactions \
+      -H "x-goog-api-key: $GEMINI_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d @-
+```
+
+> The exact Interactions API endpoint and response shape are being confirmed
+> against the live preview API — see the note in `generate_payload.py`.
+
+## Repository layout
+
+```
+hyperframes-gemini-agent/
+├── AGENTS.md                       # Agent persona + the four-step pipeline
+├── skills/
+│   ├── pick-composition/SKILL.md
+│   ├── generate-script/SKILL.md
+│   ├── customize-composition/SKILL.md
+│   └── render-and-return/SKILL.md
+├── workspace/                      # Packed into the sandbox at /.agents/workspace
+│   ├── compositions/               # The three starters (HTML + manifest.json)
+│   │   ├── social-promo/
+│   │   ├── app-trailer/
+│   │   └── explainer/
+│   └── scripts/
+│       └── customize.py            # Validate variable values vs the schema
+├── probers/probe-render.sh         # Smoke test: prompt → playable URL
+├── generate_payload.py             # Build an Interactions API request body
+└── LICENSE                         # MIT
+```
+
+## Rendering
+
+The render step runs `hyperframes cloud render` on the staged composition
+directory. The CLI zips the directory, uploads it, submits the render to
+HeyGen's `POST /v3/hyperframes/renders` endpoint, polls to completion, and
+returns a HeyGen-CDN video URL. Installing the CLI does not download a browser;
+the render itself runs on HeyGen's cloud, not in the sandbox.
+
+## Local development
+
+The variable-validation helper runs anywhere with Python 3.8+ (the sandbox
+ships 3.11):
+
+```bash
+# Validate generated content against a starter's schema
+echo '{"headline":"See clearly.","accent_color":"#22aaff"}' > /tmp/proposed.json
+python3 workspace/scripts/customize.py \
+  workspace/compositions/social-promo /tmp/proposed.json /tmp/variables.json
+```
+
+To render locally with the CLI (needs a real HeyGen key; installs the
+`hyperframes` CLI):
+
+```bash
+HEYGEN_API_KEY=... hyperframes cloud render workspace/compositions/social-promo \
+  --variables-file /tmp/variables.json --aspect-ratio 9:16 --resolution 1080p --json
+```
+
+You can also lint a composition before rendering:
+
+```bash
+hyperframes lint workspace/compositions/social-promo
+```
+
+## Status
+
+Preview. Built against HeyGen's `POST /v3/hyperframes/renders` API and the
+Gemini Managed Agents preview. The render contract is verified; the exact
+Interactions API request/response shape is being confirmed against the live
+preview before launch.
+
+## License
+
+MIT. See [LICENSE](./LICENSE).

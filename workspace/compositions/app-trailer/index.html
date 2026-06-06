@@ -1,0 +1,171 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[
+    {"id":"app_name","type":"string","label":"App name","default":"Strand","maxLength":24},
+    {"id":"tagline","type":"string","label":"Tagline","default":"Notes that think with you.","maxLength":48},
+    {"id":"feature_1","type":"string","label":"Feature 1","default":"Capture ideas in a tap","maxLength":40},
+    {"id":"feature_2","type":"string","label":"Feature 2","default":"Linked, searchable, yours","maxLength":40},
+    {"id":"feature_3","type":"string","label":"Feature 3","default":"Works everywhere you do","maxLength":40},
+    {"id":"cta_text","type":"string","label":"Call to action","default":"Try Strand free","maxLength":28},
+    {"id":"bg_color","type":"color","label":"Background color","default":"#0b0d12"},
+    {"id":"accent_color","type":"color","label":"Accent color","default":"#7c9cff"},
+    {"id":"text_color","type":"color","label":"Text color","default":"#f2f4f8"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>app-trailer</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        font-family: Helvetica, Arial, sans-serif;
+      }
+      #stage {
+        position: absolute;
+        inset: 0;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 160px;
+        box-sizing: border-box;
+        text-align: center;
+      }
+      #app-name {
+        font-size: 180px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        opacity: 0;
+      }
+      #tagline {
+        font-size: 64px;
+        font-weight: 400;
+        margin-top: 24px;
+        opacity: 0;
+      }
+      .feature {
+        font-size: 72px;
+        font-weight: 600;
+        opacity: 0;
+        margin: 18px 0;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+      }
+      .feature .dot {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+      }
+      #cta {
+        font-size: 84px;
+        font-weight: 800;
+        opacity: 0;
+        padding: 36px 96px;
+        border-radius: 999px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="stage"
+      data-composition-id="app-trailer"
+      data-start="0"
+      data-width="1920"
+      data-height="1080"
+      data-duration="12"
+      data-fps="30"
+    >
+      <!-- Scene 1: app name + tagline -->
+      <div id="scene-intro" class="scene clip" data-start="0" data-duration="4" data-track-index="0">
+        <div id="app-name"></div>
+        <div id="tagline"></div>
+      </div>
+
+      <!-- Scene 2: features -->
+      <div id="scene-features" class="scene clip" data-start="4" data-duration="5" data-track-index="1">
+        <div class="feature" id="f1"><span class="dot"></span><span class="ftext"></span></div>
+        <div class="feature" id="f2"><span class="dot"></span><span class="ftext"></span></div>
+        <div class="feature" id="f3"><span class="dot"></span><span class="ftext"></span></div>
+      </div>
+
+      <!-- Scene 3: CTA -->
+      <div id="scene-cta" class="scene clip" data-start="9" data-duration="3" data-track-index="2">
+        <div id="cta"></div>
+      </div>
+
+      <script>
+        const {
+          app_name = "Strand",
+          tagline = "Notes that think with you.",
+          feature_1 = "Capture ideas in a tap",
+          feature_2 = "Linked, searchable, yours",
+          feature_3 = "Works everywhere you do",
+          cta_text = "Try Strand free",
+          bg_color = "#0b0d12",
+          accent_color = "#7c9cff",
+          text_color = "#f2f4f8",
+        } = window.__hyperframes.getVariables();
+
+        document.body.style.background = bg_color;
+        document.body.style.color = text_color;
+        const $ = (id) => document.getElementById(id);
+
+        $("app-name").textContent = app_name;
+        $("app-name").style.color = text_color;
+        $("tagline").textContent = tagline;
+        $("tagline").style.color = accent_color;
+
+        const features = [feature_1, feature_2, feature_3];
+        ["f1", "f2", "f3"].forEach((id, i) => {
+          const el = $(id);
+          el.querySelector(".ftext").textContent = features[i];
+          el.querySelector(".dot").style.background = accent_color;
+        });
+
+        $("cta").textContent = cta_text;
+        $("cta").style.background = accent_color;
+        $("cta").style.color = bg_color;
+
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        // Scene 1
+        tl.fromTo("#app-name", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0.3);
+        tl.fromTo("#tagline", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 0.9);
+        tl.to("#scene-intro", { opacity: 0, duration: 0.5, ease: "power1.in" }, 3.5);
+        // Hard kill at the clip boundary so non-linear seeks past 4s don't
+        // leave stale visibility state.
+        tl.set("#scene-intro", { opacity: 0 }, 4.0);
+
+        // Scene 2 — staggered feature reveal
+        tl.fromTo(
+          "#scene-features .feature",
+          { opacity: 0, x: -40 },
+          { opacity: 1, x: 0, duration: 0.6, ease: "power2.out", stagger: 0.4 },
+          4.2
+        );
+        tl.to("#scene-features", { opacity: 0, duration: 0.5, ease: "power1.in" }, 8.5);
+        tl.set("#scene-features", { opacity: 0 }, 9.0);
+
+        // Scene 3 — CTA
+        tl.fromTo("#cta", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.5)" }, 9.3);
+        tl.to("#cta", { opacity: 0, duration: 0.5, ease: "power1.in" }, 11.5);
+
+        window.__timelines["app-trailer"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

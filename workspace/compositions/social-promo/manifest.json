@@ -1,0 +1,23 @@
+{
+  "id": "social-promo",
+  "title": "Social Promo",
+  "description": "A vertical 9:16 single-scene promo: brand name, a big headline, a supporting line, and a call-to-action pill. Fastest to render. Best for Instagram/TikTok/Shorts-style spots.",
+  "use_case": "Short social ad or teaser for a product, event, or launch.",
+  "aspect_ratio": "9:16",
+  "width": 1080,
+  "height": 1920,
+  "duration_seconds": 6,
+  "fps": 30,
+  "tags": ["social", "vertical", "promo", "short", "cta", "launch"],
+  "entry": "index.html",
+  "variables_note": "data-composition-variables in index.html is the source of truth; this list mirrors it for routing.",
+  "variables": [
+    { "id": "brand_name", "type": "string", "label": "Brand name", "default": "Brew" },
+    { "id": "headline", "type": "string", "label": "Headline", "default": "Coffee, perfected." },
+    { "id": "subheadline", "type": "string", "label": "Subheadline", "default": "Your morning ritual, upgraded." },
+    { "id": "cta_text", "type": "string", "label": "Call to action", "default": "Get the app" },
+    { "id": "bg_color", "type": "color", "label": "Background color", "default": "#0e0b08" },
+    { "id": "accent_color", "type": "color", "label": "Accent color", "default": "#e8a44c" },
+    { "id": "text_color", "type": "color", "label": "Text color", "default": "#ffffff" }
+  ]
+}
