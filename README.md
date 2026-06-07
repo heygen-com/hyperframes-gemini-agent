@@ -102,7 +102,8 @@ hyperframes-gemini-agent/
 │   │   ├── app-trailer/
 │   │   └── explainer/
 │   └── scripts/
-│       └── customize.py            # Validate variable values vs the schema
+│       ├── customize.py            # Validate variable values vs the schema
+│       └── render_client.py        # Zip + submit to the render API, return the URL
 ├── probers/probe-render.sh         # Smoke test: prompt → playable URL
 ├── generate_payload.py             # Build an Interactions API request body
 └── LICENSE                         # MIT
@@ -110,36 +111,34 @@ hyperframes-gemini-agent/
 
 ## Rendering
 
-The render step runs `hyperframes cloud render` on the staged composition
-directory. The CLI zips the directory, uploads it, submits the render to
-HeyGen's `POST /v3/hyperframes/renders` endpoint, polls to completion, and
-returns a HeyGen-CDN video URL. Installing the CLI does not download a browser;
-the render itself runs on HeyGen's cloud, not in the sandbox.
+The render step runs `render_client.py` on the staged composition directory. It
+zips the directory, submits it to HeyGen's `POST /v3/hyperframes/renders`
+endpoint over plain HTTPS (`requests`, pre-installed in the sandbox — no npm
+install, no Chrome), polls to completion, and returns a HeyGen-CDN video URL.
+Inside the managed-agent sandbox the egress proxy injects the HeyGen `x-api-key`
+header automatically, so the script holds no credential.
 
 ## Local development
 
-The variable-validation helper runs anywhere with Python 3.8+ (the sandbox
-ships 3.11):
+The helpers run anywhere with Python 3.8+ (the sandbox ships 3.11):
 
 ```bash
 # Validate generated content against a starter's schema
 echo '{"headline":"See clearly.","accent_color":"#22aaff"}' > /tmp/proposed.json
 python3 workspace/scripts/customize.py \
   workspace/compositions/social-promo /tmp/proposed.json /tmp/variables.json
+
+# Render it (needs a real HeyGen key locally; the sandbox injects one via the proxy)
+HEYGEN_API_KEY=... python3 workspace/scripts/render_client.py \
+  workspace/compositions/social-promo /tmp/variables.json \
+  '{"resolution":"1080p","aspect_ratio":"9:16"}'
 ```
 
-To render locally with the CLI (needs a real HeyGen key; installs the
-`hyperframes` CLI):
+You can also lint a composition with the `hyperframes` CLI before rendering
+(local dev only — the CLI is not used in the sandbox):
 
 ```bash
-HEYGEN_API_KEY=... hyperframes cloud render workspace/compositions/social-promo \
-  --variables-file /tmp/variables.json --aspect-ratio 9:16 --resolution 1080p --json
-```
-
-You can also lint a composition before rendering:
-
-```bash
-hyperframes lint workspace/compositions/social-promo
+npx hyperframes lint workspace/compositions/social-promo
 ```
 
 ## Status

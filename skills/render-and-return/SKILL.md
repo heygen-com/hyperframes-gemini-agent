@@ -5,12 +5,12 @@ description: Render the staged composition on HeyGen's cloud and return the play
 
 # Render and return the video
 
-The last step. Send the staged composition plus its variables to HeyGen's
+The last step. Submit the staged composition plus its variables to HeyGen's
 cloud render and give the user a URL they can play.
 
-You do **not** render locally — the sandbox has no Chrome or ffmpeg. The
-`hyperframes cloud render` command uploads the composition and renders it on
-HeyGen's side, then hands back a video URL.
+You do **not** render locally — the sandbox has no Chrome or ffmpeg. A small
+Python helper POSTs the composition to HeyGen's render API over HTTPS and polls
+for the finished video.
 
 ## Inputs (from customize-composition)
 
@@ -26,51 +26,33 @@ ASPECT=$(jq -r '.aspect_ratio' /.agents/workspace/compositions/<chosen-id>/manif
 ```
 
 `<chosen-id>` is whatever you picked in pick-composition (`social-promo` →
-`9:16`, `app-trailer` / `explainer` → `16:9`). The CLI also auto-detects the
-ratio from the composition, so passing it is belt-and-suspenders, but getting
-it wrong is the most common render failure for the vertical starter.
+`9:16`, `app-trailer` / `explainer` → `16:9`). Getting it wrong is the most
+common render failure for the vertical starter.
 
-## The HeyGen API key
+## The HeyGen API key — nothing to do
 
-The key arrives as the `HEYGEN_API_KEY` environment variable. The CLI reads it
-from the environment on its own — you don't pass it on the command line.
-**Never print it or echo the environment.** Start shell steps with `set +x` so
-it can't leak into the transcript.
+You don't handle the key. The sandbox's egress proxy injects the HeyGen
+`x-api-key` header automatically on requests to `api.heygen.com`. The helper
+sends no credential itself. Never try to read, set, or print a key.
 
 ## Render
 
 ```bash
 set +x
-RESULT=$(hyperframes cloud render /.agents/workspace/output/composition \
-  --variables-file /.agents/workspace/output/variables.json \
-  --aspect-ratio "$ASPECT" \
-  --resolution 1080p \
-  --json)
+RESULT=$(python3 /.agents/workspace/scripts/render_client.py \
+  /.agents/workspace/output/composition \
+  /.agents/workspace/output/variables.json \
+  "{\"resolution\":\"1080p\",\"aspect_ratio\":\"$ASPECT\"}")
 
-VIDEO_URL=$(echo "$RESULT" | jq -r '.render.video_url')
-THUMB_URL=$(echo "$RESULT" | jq -r '.render.thumbnail_url')
-DURATION=$(echo "$RESULT" | jq -r '.render.duration')
+VIDEO_URL=$(echo "$RESULT" | jq -r '.video_url')
+THUMB_URL=$(echo "$RESULT" | jq -r '.thumbnail_url')
+DURATION=$(echo "$RESULT" | jq -r '.duration')
 ```
 
-Notes:
-
-- `hyperframes cloud render` takes the composition **directory** directly. It
-  zips it (with the same ignore rules as `hyperframes publish`), uploads it,
-  submits the render, polls to completion, and downloads the result. You don't
-  bundle a zip yourself.
-- `--json` nests the result under `.render` — note the `.render.video_url`
-  path.
-- If the `hyperframes` CLI isn't on the path yet, install it once (it's cached
-  for the life of the environment):
-
-  ```bash
-  set +x
-  npm install -g hyperframes
-  ```
-
-  This installs the CLI but does **not** download Chrome — that only happens on
-  a local `hyperframes render`, which you never run. The cloud render needs no
-  browser in the sandbox.
+`render_client.py` zips the composition directory, submits it to
+`POST /v3/hyperframes/renders`, polls until the render finishes, and prints a
+JSON object: `{"render_id","video_url","thumbnail_url","duration","format"}`.
+Output is flat — parse `.video_url`, not `.render.video_url`.
 
 ## Returning the result
 
@@ -83,9 +65,9 @@ Once you have `VIDEO_URL`:
 
 ## When the render fails
 
-The CLI prints a `failure_message` from the API on a failed render. Show the
-user a plain, useful message ("The render failed: <reason>. Want me to try
-again or adjust the composition?") — never a raw stack trace or the command
-output. Common causes: an aspect ratio that doesn't match the composition, or
-an invalid variable that slipped past validation. If it's the aspect ratio,
+`render_client.py` exits non-zero and prints the API's `failure_message` on a
+failed render. Show the user a plain, useful message ("The render failed:
+<reason>. Want me to try again or adjust the composition?") — never a raw stack
+trace. Common causes: an aspect ratio that doesn't match the composition, or an
+invalid variable that slipped past validation. If it's the aspect ratio,
 re-check the manifest value.

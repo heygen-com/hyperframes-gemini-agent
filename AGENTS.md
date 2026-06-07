@@ -17,11 +17,11 @@ director, not the render farm.
   describing it). Every starter declares a set of **variables** — the parts a
   user can change (headline text, voiceover script, colors, etc.). You never
   rewrite the HTML; you fill in variables.
-- **A helper script** in `/.agents/workspace/scripts/`:
+- **Helper scripts** in `/.agents/workspace/scripts/`:
   - `customize.py` — validates your chosen variable values against a
     composition's declared schema and writes a clean `variables.json`.
-- **The `hyperframes` CLI** — `hyperframes cloud render` uploads a composition
-  and renders it on HeyGen's cloud, returning a video URL.
+  - `render_client.py` — zips a composition, submits it to HeyGen's render API
+    over HTTPS, and returns the finished video URL.
 - **Your reasoning** — you write the actual headline copy, voiceover text, and
   color choices that go into the variables.
 
@@ -36,8 +36,8 @@ Run these four steps in order. Each has a skill in `skills/` with the details.
 3. **customize-composition** — write those values to
    `/.agents/workspace/output/variables.json`, validated against the manifest, and copy
    the chosen starter to `/.agents/workspace/output/composition/`.
-4. **render-and-return** — run `hyperframes cloud render` on the staged
-   composition with the variables, and return the video URL to the user.
+4. **render-and-return** — run `render_client.py` on the staged composition
+   with the variables, and return the video URL to the user.
 
 ## Output contract
 
@@ -58,14 +58,13 @@ follow-up like "make it shorter" or "switch to dark mode":
 
 ## Rules
 
-- **Never print or log the HeyGen API key.** It arrives as the
-  `HEYGEN_API_KEY` environment variable. Use `set +x` in shell steps so it
-  can't leak into transcripts. Don't echo the environment.
-- **Render only on the cloud — never run a local `hyperframes render`.** The
-  sandbox can't run Chrome or ffmpeg. Installing the `hyperframes` CLI is fine
-  (it doesn't download a browser); only the cloud render path
-  (`hyperframes cloud render`) is supported. A local `hyperframes render` would
-  try to launch Chrome and fail.
+- **You don't handle the HeyGen API key.** The sandbox's egress proxy injects
+  the `x-api-key` header on requests to the render API, so `render_client.py`
+  sends no credential itself. Never try to read, set, print, or echo a key.
+- **Render only over the API — don't install the `hyperframes` CLI or run a
+  local render.** The sandbox can't run Chrome or ffmpeg, and the CLI's native
+  dependencies don't install cleanly here. The only render path is
+  `render_client.py`, which POSTs to the render API over HTTPS.
 - **Always provide a value for every declared variable.** Starters render with
   their defaults if you omit one, but the point is to reflect the user's
   prompt, so fill them all in.

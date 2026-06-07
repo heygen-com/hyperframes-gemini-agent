@@ -44,9 +44,13 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Base agent for the managed-agents preview.
 BASE_AGENT = "antigravity-preview-05-2026"
 
-# Hosts the sandbox must reach: the npm registry to install the `hyperframes`
-# CLI, and api.heygen.com for the cloud render the CLI submits to.
-NETWORK_ALLOWLIST = ["registry.npmjs.org", "api.heygen.com"]
+# The only host the sandbox must reach: api.heygen.com for the render API.
+# (No npm registry — the direct-API render path needs no install.) The egress
+# proxy injects the HeyGen `x-api-key` on this domain via `transform`, so the
+# in-sandbox code holds no credential. The key value is read from the
+# HEYGEN_API_KEY env at pack time and placed in the transform; the deployer
+# provides it (it is not stored in the repo).
+RENDER_HOST = "api.heygen.com"
 
 # Directories/files packed into the sandbox, each rooted under /.agents/.
 _PACK_ROOTS = ["AGENTS.md", "skills", "workspace"]
@@ -87,11 +91,12 @@ def _make_source(abs_path: str) -> dict:
     ext = os.path.splitext(abs_path)[1].lower()
     if ext in _TEXT_EXTS:
         return {"type": "inline", "target": target, "content": data.decode("utf-8")}
+    # Binary inline source: base64 content + encoding (per the verified schema).
     return {
         "type": "inline",
         "target": target,
-        "media_type": "application/octet-stream",
-        "data": base64.b64encode(data).decode("ascii"),
+        "content": base64.b64encode(data).decode("ascii"),
+        "encoding": "base64",
     }
 
 
@@ -101,7 +106,7 @@ def collect_sources() -> list[dict]:
     for root in _PACK_ROOTS:
         for abs_path in _iter_files(root):
             src = _make_source(abs_path)
-            total += len(src.get("content", "")) or len(src.get("data", ""))
+            total += len(src.get("content", ""))
             sources.append(src)
     if total > _MAX_TOTAL_BYTES:
         raise SystemExit(
@@ -111,15 +116,25 @@ def collect_sources() -> list[dict]:
     return sources
 
 
+def _render_allowlist_entry() -> dict:
+    # Allow the render host; if a HeyGen key is in the env at pack time, inject
+    # it as the `x-api-key` header on that host via the proxy `transform` so the
+    # sandbox code needs no credential. The key is never written to the repo.
+    entry: dict = {"domain": RENDER_HOST}
+    key = os.environ.get("HEYGEN_API_KEY")
+    if key:
+        entry["transform"] = [{"x-api-key": key}]
+    return entry
+
+
 def build_payload(prompt: str, environment_id: str | None) -> dict:
     payload: dict = {
-        # NOTE: the exact top-level prompt field for interactions.create is
-        # unverified against the live preview API — confirm in Phase 0a.
         "input": prompt,
         "agent": BASE_AGENT,
         "environment": {
+            "type": "remote",
             "sources": collect_sources(),
-            "network": {"allowlist": NETWORK_ALLOWLIST},
+            "network": {"allowlist": [_render_allowlist_entry()]},
         },
     }
     # Reuse a persistent sandbox across turns for multi-turn iteration.
