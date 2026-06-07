@@ -106,6 +106,10 @@
         <div id="cta"></div>
       </div>
 
+      <!-- Voiceover audio: `__VOICEOVER_URL__` is substituted at customize time
+           (renderer needs a static src); stripped when there's no narration. -->
+      <audio id="voiceover" data-start="0" data-duration="12" data-track-index="3" data-volume="1" src="__VOICEOVER_URL__"></audio>
+
       <script>
         const {
           app_name = "Strand",

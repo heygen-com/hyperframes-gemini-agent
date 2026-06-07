@@ -10,6 +10,8 @@
   "fps": 30,
   "tags": ["social", "vertical", "promo", "short", "cta", "launch"],
   "entry": "index.html",
+  "recommended_voice_id": "2b0124724e144eedba61ecb590d6c266",
+  "recommended_voice_note": "Luna Bright — bright, friendly; fits social promos. Override per prompt tone.",
   "variables_note": "data-composition-variables in index.html is the source of truth; this list mirrors it for routing.",
   "variables": [
     { "id": "brand_name", "type": "string", "label": "Brand name", "default": "Brew" },
@@ -19,5 +21,6 @@
     { "id": "bg_color", "type": "color", "label": "Background color", "default": "#0e0b08" },
     { "id": "accent_color", "type": "color", "label": "Accent color", "default": "#e8a44c" },
     { "id": "text_color", "type": "color", "label": "Text color", "default": "#ffffff" }
-  ]
+  ],
+  "voiceover_note": "Voiceover is build-time-substituted into the <audio> src (__VOICEOVER_URL__), NOT a runtime data-composition-variable. generate-voiceover synthesizes it; apply_voiceover.py injects it. Voice = recommended_voice_id unless the prompt directs otherwise."
 }

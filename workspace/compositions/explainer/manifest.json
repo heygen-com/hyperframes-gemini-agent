@@ -10,6 +10,8 @@
   "fps": 30,
   "tags": ["explainer", "how-it-works", "steps", "onboarding", "landscape", "tutorial"],
   "entry": "index.html",
+  "recommended_voice_id": "0f50a7a5577e4cd583ba738094956899",
+  "recommended_voice_note": "Marcus – Professional — warm, clear; fits explainers. Override per prompt tone.",
   "variables_note": "data-composition-variables in index.html is the source of truth; this list mirrors it for routing.",
   "variables": [
     { "id": "title", "type": "string", "label": "Title", "default": "How it works" },
@@ -20,5 +22,6 @@
     { "id": "bg_color", "type": "color", "label": "Background color", "default": "#101418" },
     { "id": "accent_color", "type": "color", "label": "Accent color", "default": "#42d6a4" },
     { "id": "text_color", "type": "color", "label": "Text color", "default": "#eef2f0" }
-  ]
+  ],
+  "voiceover_note": "Voiceover is build-time-substituted into the <audio> src (__VOICEOVER_URL__), NOT a runtime data-composition-variable. generate-voiceover synthesizes it; apply_voiceover.py injects it. Voice = recommended_voice_id unless the prompt directs otherwise."
 }

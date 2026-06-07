@@ -10,6 +10,8 @@
   "fps": 30,
   "tags": ["product", "trailer", "saas", "app", "landscape", "features"],
   "entry": "index.html",
+  "recommended_voice_id": "07d2ba65847541feb97abc9b60181555",
+  "recommended_voice_note": "Smooth Dev — smooth, confident; fits product trailers. Override per prompt tone.",
   "variables_note": "data-composition-variables in index.html is the source of truth; this list mirrors it for routing.",
   "variables": [
     { "id": "app_name", "type": "string", "label": "App name", "default": "Strand" },
@@ -21,5 +23,6 @@
     { "id": "bg_color", "type": "color", "label": "Background color", "default": "#0b0d12" },
     { "id": "accent_color", "type": "color", "label": "Accent color", "default": "#7c9cff" },
     { "id": "text_color", "type": "color", "label": "Text color", "default": "#f2f4f8" }
-  ]
+  ],
+  "voiceover_note": "Voiceover is build-time-substituted into the <audio> src (__VOICEOVER_URL__), NOT a runtime data-composition-variable. generate-voiceover synthesizes it; apply_voiceover.py injects it. Voice = recommended_voice_id unless the prompt directs otherwise."
 }

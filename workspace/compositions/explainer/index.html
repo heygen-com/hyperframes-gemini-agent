@@ -90,6 +90,10 @@
       <div class="step" id="s3"><div class="num">3</div><div class="label"></div></div>
       <div id="summary"></div>
 
+      <!-- Voiceover audio: `__VOICEOVER_URL__` is substituted at customize time
+           (renderer needs a static src); stripped when there's no narration. -->
+      <audio id="voiceover" data-start="0" data-duration="14" data-track-index="0" data-volume="1" src="__VOICEOVER_URL__"></audio>
+
       <script>
         const {
           title = "How it works",

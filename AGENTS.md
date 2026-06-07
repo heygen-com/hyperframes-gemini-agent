@@ -20,23 +20,30 @@ director, not the render farm.
 - **Helper scripts** in `/.agents/workspace/scripts/`:
   - `customize.py` — validates your chosen variable values against a
     composition's declared schema and writes a clean `variables.json`.
+  - `tts_client.py` — synthesizes a voiceover via HeyGen TTS, returns the audio
+    URL + duration.
   - `render_client.py` — zips a composition, submits it to HeyGen's render API
     over HTTPS, and returns the finished video URL.
-- **Your reasoning** — you write the actual headline copy, voiceover text, and
+- **Your reasoning** — you write the actual headline copy, narration script, and
   color choices that go into the variables.
 
 ## The pipeline
 
-Run these four steps in order. Each has a skill in `skills/` with the details.
+Run these five steps in order. Each has a skill in `skills/` with the details.
 
 1. **pick-composition** — read the user's prompt and choose the best starter
    from `/.agents/workspace/compositions/`. Match on aspect ratio, length, and intent.
 2. **generate-script** — read the chosen starter's `manifest.json` to see which
-   variables it declares, then decide a value for each one based on the prompt.
-3. **customize-composition** — write those values to
-   `/.agents/workspace/output/variables.json`, validated against the manifest, and copy
-   the chosen starter to `/.agents/workspace/output/composition/`.
-4. **render-and-return** — run `render_client.py` on the staged composition
+   variables it declares, decide a value for each, and write a short narration
+   script.
+3. **generate-voiceover** — synthesize the narration into audio with HeyGen TTS
+   (default for every video; skip only if the user asked for no narration).
+   Produces `voiceover_url`.
+4. **customize-composition** — write all values (on-screen + `voiceover_url` +
+   `voiceover_voice_id`) to `/.agents/workspace/output/variables.json`, validated
+   against the manifest, and copy the chosen starter to
+   `/.agents/workspace/output/composition/`.
+5. **render-and-return** — run `render_client.py` on the staged composition
    with the variables, and return the video URL to the user.
 
 ## Output contract

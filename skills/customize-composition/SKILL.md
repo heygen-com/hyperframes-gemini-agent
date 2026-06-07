@@ -41,6 +41,16 @@ at render time — the composition reads them with
    cp -r /.agents/workspace/compositions/<chosen-id> /.agents/workspace/output/composition
    ```
 
+4. Bake in the voiceover. The renderer reads the `<audio>` `src` from static
+   HTML, so substitute the synthesized URL into the staged composition (or strip
+   the audio element if there's no narration):
+
+   ```bash
+   python3 /.agents/workspace/scripts/apply_voiceover.py \
+     /.agents/workspace/output/composition \
+     "$(cat /.agents/workspace/output/voiceover_url.txt 2>/dev/null)"
+   ```
+
 ## Multi-turn edits
 
 On a follow-up ("make the headline punchier", "switch to a dark background"),

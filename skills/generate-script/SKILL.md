@@ -53,6 +53,21 @@ A plain JSON object mapping each variable `id` to your chosen value, e.g.:
 }
 ```
 
-Write this to `/.agents/workspace/output/proposed.json`. Then move to
-**customize-composition**, which validates it against the composition's real
-schema before rendering.
+Write this to `/.agents/workspace/output/proposed.json`.
+
+## Also write the narration script
+
+Every video gets a spoken voiceover by default. Alongside the on-screen
+variables, write a short **narration script** — what the voice says — sized to
+the starter's `duration_seconds` (roughly 2–3 spoken words per second, so a 6s
+starter is ~12–18 words). It should complement the on-screen copy, not just
+read it verbatim — set the scene, land the benefit, end on the CTA. Keep it
+tight; the voiceover step will trim it further if the synthesized audio runs
+long.
+
+Save it to `/.agents/workspace/output/voiceover_script.txt`. (Skip only if the
+user explicitly asked for no narration.)
+
+Then move to **generate-voiceover**, which synthesizes the narration, and then
+**customize-composition**, which validates everything against the composition's
+real schema before rendering.

@@ -84,6 +84,12 @@
       <div id="subheadline"></div>
       <div id="cta"></div>
 
+      <!-- Voiceover audio (invisible, no class="clip"). The renderer needs a
+           static src, so `__VOICEOVER_URL__` is substituted with the synthesized
+           audio URL at customize time (apply_voiceover.py); the element is
+           stripped entirely when there's no narration. -->
+      <audio id="voiceover" data-start="0" data-duration="6" data-track-index="0" data-volume="1" src="__VOICEOVER_URL__"></audio>
+
       <script>
         // Read the resolved variables once, at the top.
         const v = window.__hyperframes.getVariables();

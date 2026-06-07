@@ -37,7 +37,7 @@ const DEST_SKILLS = join(REPO_ROOT, "skills");
 const MANIFEST = join(REPO_ROOT, "skills-compat-manifest.json");
 
 // Hand-authored skills that drive the agent pipeline — real dirs, never managed here.
-const CORE_SKILLS = new Set(["pick-composition", "generate-script", "customize-composition", "render-and-return"]);
+const CORE_SKILLS = new Set(["pick-composition", "generate-script", "generate-voiceover", "customize-composition", "render-and-return"]);
 
 // Known-incompatible skills the heuristics can't infer from signals alone.
 const INCOMPATIBLE_OVERRIDES = {
