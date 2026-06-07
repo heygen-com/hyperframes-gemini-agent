@@ -91,11 +91,16 @@ python3 generate_payload.py --prompt "make a 15s social promo for Brew, dark the
 ```
 hyperframes-gemini-agent/
 ├── AGENTS.md                       # Agent persona + the four-step pipeline
-├── skills/
+├── skills/                         # 4 core skills (real dirs) + symlinked external skills
 │   ├── pick-composition/SKILL.md
 │   ├── generate-script/SKILL.md
 │   ├── customize-composition/SKILL.md
-│   └── render-and-return/SKILL.md
+│   ├── render-and-return/SKILL.md
+│   └── <external>  ->  ../external-skills/hyperframes/skills/<name>   (generated symlinks)
+├── external-skills/hyperframes/    # git submodule (sparse: skills/ only), pinned SHA
+├── scripts/build-external-skills.mjs   # classify + symlink external skills, write manifest
+├── skills-compat-manifest.json     # generated: each external skill + compat tier + reason
+├── package.json                    # `bun run build-external-skills` / `update-external-skills`
 ├── workspace/                      # Packed into the sandbox at /.agents/workspace
 │   ├── compositions/               # The three starters (HTML + manifest.json)
 │   │   ├── social-promo/
@@ -108,6 +113,35 @@ hyperframes-gemini-agent/
 ├── generate_payload.py             # Build an Interactions API request body
 └── LICENSE                         # MIT
 ```
+
+## Skills
+
+The agent's four core skills (`pick-composition`, `generate-script`,
+`customize-composition`, `render-and-return`) are hand-authored and drive the
+pipeline. On top of those, it dynamically loads HyperFrames' own authoring
+skills (GSAP, Anime.js, CSS, Lottie, Three.js, captions, etc.) from the
+`hyperframes` repo, vendored as a pinned git submodule under `external-skills/`.
+
+`scripts/build-external-skills.mjs` walks the submodule's skills, classifies
+each for the Gemini sandbox, and symlinks the usable ones into `skills/`:
+
+- **portable** — pure authoring/reference knowledge → symlinked.
+- **partial** — assumes the `hyperframes` CLI (absent in the sandbox); the
+  knowledge is usable, CLI steps fail informatively → symlinked.
+- **incompatible** — needs headless Chrome or is out of scope → excluded.
+
+The tiering + reasons are written to `skills-compat-manifest.json`. A future
+`platform-compat: { gemini: ... }` SKILL.md frontmatter field overrides the
+heuristic per skill when present.
+
+```bash
+git submodule update --init        # fetch the pinned skills
+bun run build-external-skills      # classify + symlink + write the manifest
+bun run update-external-skills     # bump the submodule to origin/main, then rebuild
+```
+
+(`bun run` is the documented entrypoint; the scripts are plain Node, so
+`node scripts/build-external-skills.mjs` works too.)
 
 ## Rendering
 

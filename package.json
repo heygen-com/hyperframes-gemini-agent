@@ -1,0 +1,11 @@
+{
+  "name": "hyperframes-gemini-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Build tooling for the HyperFrames Gemini managed-agent template (skill classification + symlinking).",
+  "license": "MIT",
+  "scripts": {
+    "build-external-skills": "node scripts/build-external-skills.mjs",
+    "update-external-skills": "node scripts/build-external-skills.mjs --update"
+  }
+}

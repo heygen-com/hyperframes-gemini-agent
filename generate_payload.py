@@ -71,7 +71,9 @@ def _iter_files(root_rel: str):
     if os.path.isfile(abs_root):
         yield abs_root
         return
-    for dirpath, dirnames, filenames in os.walk(abs_root):
+    # followlinks=True so the external-skill symlinks under skills/ (created by
+    # scripts/build-external-skills.mjs, pointing into the submodule) are packed.
+    for dirpath, dirnames, filenames in os.walk(abs_root, followlinks=True):
         dirnames[:] = [d for d in dirnames if d not in _SKIP_DIR_NAMES]
         for name in filenames:
             if name == ".DS_Store":

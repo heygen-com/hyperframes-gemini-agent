@@ -1,0 +1,3 @@
+[submodule "external-skills/hyperframes"]
+	path = external-skills/hyperframes
+	url = git@github.com:heygen-com/hyperframes.git

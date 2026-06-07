@@ -1,0 +1,108 @@
+{
+  "generated_by": "scripts/build-external-skills.mjs",
+  "generated_at": "2026-06-07T20:13:29.786Z",
+  "submodule": {
+    "url": "git@github.com:heygen-com/hyperframes.git",
+    "sha": "806b226b349897cb69618a2d706de6c9455c7226"
+  },
+  "classification_note": "v1 heuristics (override list + CLI-reference density + Claude-tooling scan). A `platform-compat: { gemini: ... }` frontmatter field, when present, overrides the heuristic. portable+partial are symlinked into skills/; incompatible are excluded.",
+  "summary": {
+    "total": 15,
+    "portable": 9,
+    "incompatible": 2,
+    "partial": 4,
+    "symlinked": 13
+  },
+  "skills": [
+    {
+      "name": "animejs",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "contribute-catalog",
+      "tier": "incompatible",
+      "reason": "upstream-PR / catalog-contribution workflow (needs repo write access); not video authoring — out of scope for the agent",
+      "symlinked": false
+    },
+    {
+      "name": "css-animations",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "gsap",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "hyperframes",
+      "tier": "partial",
+      "reason": "CLI-centric (10 `hyperframes` CLI references); knowledge usable but CLI steps fail — the sandbox renders via render_client.py, not the CLI",
+      "symlinked": true
+    },
+    {
+      "name": "hyperframes-cli",
+      "tier": "partial",
+      "reason": "CLI-centric (39 `hyperframes` CLI references); knowledge usable but CLI steps fail — the sandbox renders via render_client.py, not the CLI",
+      "symlinked": true
+    },
+    {
+      "name": "hyperframes-media",
+      "tier": "partial",
+      "reason": "CLI-centric (18 `hyperframes` CLI references); knowledge usable but CLI steps fail — the sandbox renders via render_client.py, not the CLI",
+      "symlinked": true
+    },
+    {
+      "name": "hyperframes-registry",
+      "tier": "partial",
+      "reason": "CLI-centric (10 `hyperframes` CLI references); knowledge usable but CLI steps fail — the sandbox renders via render_client.py, not the CLI",
+      "symlinked": true
+    },
+    {
+      "name": "lottie",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "remotion-to-hyperframes",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "tailwind",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "three",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "typegpu",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "waapi",
+      "tier": "portable",
+      "reason": "pure authoring/reference knowledge; no Claude-platform or CLI core dependency",
+      "symlinked": true
+    },
+    {
+      "name": "website-to-hyperframes",
+      "tier": "incompatible",
+      "reason": "requires headless Chrome for site capture; needs a HeyGen cloud-side capture endpoint to be portable",
+      "symlinked": false
+    }
+  ]
+}
