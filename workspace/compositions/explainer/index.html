@@ -81,17 +81,14 @@
       data-duration="14"
       data-fps="30"
     >
-      <div id="title" class="clip" data-start="0" data-duration="14" data-track-index="0"></div>
-      <div class="step clip" id="s1" data-start="0" data-duration="14" data-track-index="1">
-        <div class="num">1</div><div class="label"></div>
-      </div>
-      <div class="step clip" id="s2" data-start="0" data-duration="14" data-track-index="2">
-        <div class="num">2</div><div class="label"></div>
-      </div>
-      <div class="step clip" id="s3" data-start="0" data-duration="14" data-track-index="3">
-        <div class="num">3</div><div class="label"></div>
-      </div>
-      <div id="summary" class="clip" data-start="0" data-duration="14" data-track-index="4"></div>
+      <!-- Plain flow children of the flex #stage; GSAP drives the reveal.
+           NOT .clip (the runtime force-absolutes .clip nodes, which would
+           stack them on top of each other). -->
+      <div id="title"></div>
+      <div class="step" id="s1"><div class="num">1</div><div class="label"></div></div>
+      <div class="step" id="s2"><div class="num">2</div><div class="label"></div></div>
+      <div class="step" id="s3"><div class="num">3</div><div class="label"></div></div>
+      <div id="summary"></div>
 
       <script>
         const {

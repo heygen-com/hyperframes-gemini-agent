@@ -75,10 +75,14 @@
       data-duration="6"
       data-fps="30"
     >
-      <div id="brand" class="clip" data-start="0" data-duration="6" data-track-index="0"></div>
-      <div id="headline" class="clip" data-start="0" data-duration="6" data-track-index="1"></div>
-      <div id="subheadline" class="clip" data-start="0" data-duration="6" data-track-index="2"></div>
-      <div id="cta" class="clip" data-start="0" data-duration="6" data-track-index="3"></div>
+      <!-- One full-screen flex layer (#stage) holds these as normal flow
+           children; GSAP drives their reveal. They are NOT .clip elements —
+           the runtime force-absolutes .clip nodes (top:0/left:0), which would
+           stack them on top of each other. -->
+      <div id="brand"></div>
+      <div id="headline"></div>
+      <div id="subheadline"></div>
+      <div id="cta"></div>
 
       <script>
         // Read the resolved variables once, at the top.
