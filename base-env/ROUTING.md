@@ -17,6 +17,9 @@ matrix to run once quota is available.
 | 6 | "animated logo reveal for Voxel: pixel-art, neon, arcade vibes" | **yes** | local | **local** | pure free-composition — bespoke animation, no starter fits |
 | 7 | "30s React useState walkthrough with animated code" | **yes** | **lite** (no Chrome) | **cloud + degradation warning** | free-auth needed but env can't render it locally → cloud, warn it may not render exactly right |
 | 8 | "social promo for a coffee app" | no | **lite** | **cloud** | starter + no local capability → cloud (the default, unaffected) |
+| 9 | "*use cloud render* to make a custom animated logo reveal" | yes | local | **cloud + warning** | contradictory: explicit override wins (→ cloud), but the prompt needs free-auth → warn it may not render exactly right on cloud. Don't silently ignore the override OR the authoring need. |
+| 10 | "fill the app-trailer starter but *also add a custom animated badge*" | **yes** | local | **local** | mixed: starter base + a bespoke element. The custom badge needs authoring → free-auth → local (author the starter-derived comp with the extra element). |
+| 11 | "make a 15s explainer of our pricing tiers with each tier *sliding in and morphing*" | **yes** | local | **local** | deceptive: "explainer" sounds starter-fillable, but the slide-in/morph choreography isn't expressible via the explainer starter's variables → free-auth. |
 
 Key cases this guards against:
 - #2 false-positive: authoring-*sounding* words that a starter already covers → must NOT route local (would pay 10× for nothing).

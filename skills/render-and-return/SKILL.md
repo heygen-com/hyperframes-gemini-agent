@@ -29,7 +29,13 @@ Two render paths, chosen at runtime:
 Detect the environment first:
 
 ```bash
-command -v hyperframes && command -v chrome-headless-shell   # both present ⇒ local is possible
+# Local is possible only if BOTH binaries resolve to a real, executable target.
+# `command -v` alone passes a dangling symlink — dereference + test -x.
+local_ok=yes
+for bin in hyperframes chrome-headless-shell; do
+  p=$(command -v "$bin" 2>/dev/null) && [ -x "$(readlink -f "$p" 2>/dev/null)" ] || local_ok=no
+done
+echo "local render available: $local_ok"
 ```
 
 Then decide, in priority order:
@@ -72,11 +78,13 @@ Decision tree (after the classification):
 Local + free-composition renders are token-expensive (free-auth can burn
 millions of tokens — author + lint + validate + render iterations). Respect a
 budget: read `MAX_TOKENS_PER_RENDER` (default 4,000,000). Keep a rough running
-count of tokens spent; as you approach the ceiling, **stop gracefully and warn**
-("approaching the token budget — increase MAX_TOKENS_PER_RENDER or simplify the
-prompt") rather than running silently to exhaustion. Report total tokens spent
-in your final summary so the user sees the cost (local is far pricier than
-cloud — see docs/local-mode.md).
+count of tokens spent. This is **enforced, not advisory**: once the count
+crosses the ceiling, **abort the render with a clean error** — do not keep
+going. Return: "Stopped at the token budget (`MAX_TOKENS_PER_RENDER`). Increase
+it or simplify the prompt (free-composition is the expensive path)." Surface
+whatever partial work exists, but do not silently run to exhaustion. Always
+report total tokens spent in your final summary so the user sees the cost (local
+is far pricier than cloud — see docs/local-mode.md).
 
 ## Cloud path
 
