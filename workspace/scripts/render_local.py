@@ -60,12 +60,32 @@ def render(comp_dir: str, output: str, resolution: str = "1080p") -> dict:
     if proc.returncode != 0 or not os.path.isfile(output):
         tail = (proc.stderr or proc.stdout or "")[-600:]
         raise RuntimeError(f"local render failed (rc={proc.returncode}) after {secs}s:\n{tail}")
-    return {
-        "local_path": os.path.abspath(output),
-        "render_seconds": secs,
-        "duration": _duration(output),
-        "returncode": 0,
-    }
+    abspath = os.path.abspath(output)
+    result = {"local_path": abspath, "render_seconds": secs, "duration": _duration(output), "returncode": 0}
+    result.update(_publish(abspath))
+    return result
+
+
+def _publish(path: str) -> dict:
+    """Make the rendered file reachable. If GCS_BUCKET is set, upload to GCS and
+    return a public URL; otherwise return a file:// path with a note. (HeyGen
+    /v3/assets upload is an alternative we could route to instead.)"""
+    bucket = os.environ.get("GCS_BUCKET")
+    if not bucket:
+        return {"video_url": f"file://{path}", "note": "GCS_BUCKET not set; returning sandbox-local file path"}
+    try:
+        # Lazy import so the dep is only needed when uploading. Auth via
+        # GOOGLE_APPLICATION_CREDENTIALS (service-account JSON) or workload
+        # identity if the sandbox provides it.
+        from google.cloud import storage  # type: ignore
+
+        key = f"hyperframes/{os.path.basename(os.path.dirname(path)) or 'render'}/{os.path.basename(path)}"
+        blob = storage.Client().bucket(bucket).blob(key)
+        blob.upload_from_filename(path)
+        blob.make_public()
+        return {"video_url": blob.public_url, "gcs_uri": f"gs://{bucket}/{key}"}
+    except Exception as exc:  # noqa: BLE001 — surface upload failure but keep the local file
+        return {"video_url": f"file://{path}", "upload_error": f"{type(exc).__name__}: {exc}"}
 
 
 def main(argv: list[str]) -> int:

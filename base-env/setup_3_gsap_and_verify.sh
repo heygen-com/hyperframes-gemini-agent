@@ -22,7 +22,13 @@ else
   echo "GSAP: $(wc -c < /workspace/.cache/libs/gsap.min.js) bytes (reference local copies via file path, never a CDN)"
 fi
 
-log "2/3 Cleanup"
+log "2/3 Optional: google-cloud-storage (for local-render GCS upload, if GCS_BUCKET is set)"
+# Best-effort: render_local.py only imports this when GCS_BUCKET is set, so a
+# failure here is non-fatal for cloud-mode / file-fallback local-mode.
+pip3 install -q --disable-pip-version-check google-cloud-storage 2>/dev/null \
+  && echo "google-cloud-storage installed" || echo "  (google-cloud-storage not installed — GCS upload will fall back to file path)"
+
+log "Cleanup"
 rm -rf /workspace/debs /var/tmp/google-chrome.deb /var/tmp/chs /var/tmp/all_deps.txt 2>/dev/null || true
 
 log "3/3 Verification"

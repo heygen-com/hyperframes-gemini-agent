@@ -73,16 +73,18 @@ HeyGen-CDN URL — give it straight to the user.
 set +x
 RESULT=$(python3 /.agents/workspace/scripts/render_local.py \
   /.agents/workspace/output/composition \
-  /.agents/workspace/output/video.mp4 1080p)
-LOCAL_PATH=$(echo "$RESULT" | jq -r '.local_path')
+  /.agents/workspace/output/video.mp4)
+VIDEO_URL=$(echo "$RESULT" | jq -r '.video_url')      # gs/public URL if GCS_BUCKET set, else file://…
 RENDER_SECONDS=$(echo "$RESULT" | jq -r '.render_seconds')
 ```
 
-`render_local.py` runs `hyperframes render` with
-`HYPERFRAMES_BROWSER_PATH=/usr/bin/chrome-headless-shell`. It produces a file in
-the sandbox. To give the user something playable you must then make it
-reachable — upload it (e.g. a HeyGen asset upload) and return that URL. Note the
-local file path and render time so the user knows it ran locally.
+`render_local.py` runs `hyperframes render` at the composition's native
+resolution with `HYPERFRAMES_BROWSER_PATH=/usr/bin/chrome-headless-shell`, then
+publishes the file: if `GCS_BUCKET` is set it uploads to GCS and returns a
+public URL; otherwise it returns a `file://` path (sandbox-local) with a note.
+So a deploy that wants shareable local-render URLs sets `GCS_BUCKET` (+ GCP
+auth). If `video_url` is a `file://`, tell the user it rendered locally and the
+file lives in the sandbox. Note the render time (local is slower than cloud).
 
 ## Returning the result
 
