@@ -18,7 +18,8 @@ mkdir -p /workspace/.cache/libs
 if [ -f /workspace/.cache/libs/gsap.min.js ]; then
   echo "GSAP already cached"
 else
-  curl -sk -o /workspace/.cache/libs/gsap.min.js https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js
+  # GSAP 3.15.0 — matches the version the starter compositions vendor.
+  curl -sk -o /workspace/.cache/libs/gsap.min.js https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js
   echo "GSAP: $(wc -c < /workspace/.cache/libs/gsap.min.js) bytes (reference local copies via file path, never a CDN)"
 fi
 

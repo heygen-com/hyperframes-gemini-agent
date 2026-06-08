@@ -10,6 +10,10 @@
 set -euo pipefail
 log() { echo; echo "=== $1 ==="; }
 
+# Pin the CLI version so the base-env snapshot is reproducible. Bump here (in one
+# place) when re-snapshotting against a newer CLI.
+HF_VERSION=0.6.81
+
 log "1/2 chrome-headless-shell (via curl, not @puppeteer/browsers)"
 if command -v chrome-headless-shell >/dev/null 2>&1 && chrome-headless-shell --version >/dev/null 2>&1; then
   echo "already present: $(chrome-headless-shell --version)"
@@ -37,7 +41,7 @@ export NODE_TLS_REJECT_UNAUTHORIZED=0
 if command -v hyperframes >/dev/null 2>&1; then
   echo "already present: $(hyperframes --help 2>&1 | head -1)"
 else
-  npm install -g --ignore-scripts hyperframes
+  npm install -g --ignore-scripts "hyperframes@${HF_VERSION}"
   ONNX="/usr/lib/node_modules/hyperframes/node_modules/onnxruntime-node"
   if [ -f "$ONNX/script/install.js" ]; then
     echo "running onnxruntime-node postinstall via proxy..."
