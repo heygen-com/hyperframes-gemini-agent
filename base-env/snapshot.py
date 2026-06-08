@@ -26,6 +26,16 @@ from google import genai  # noqa: E402
 
 SETUP_SCRIPTS = ["setup_1_chrome.sh", "setup_2_headless_and_cli.sh", "setup_3_gsap_and_verify.sh"]
 
+# Closed egress allowlist (see base-env/ALLOWLIST.md for the per-host rationale).
+# Replaces the spike's wildcard. ⚠️ unverified end-to-end (blocked on Gemini
+# quota); a fresh setup run confirms nothing breaks + surfaces any missing host.
+ALLOWLIST = [
+    "dl.google.com", "archive.ubuntu.com", "security.ubuntu.com",
+    "googlechromelabs.github.io", "storage.googleapis.com", "registry.npmjs.org",
+    "github.com", "objects.githubusercontent.com", "cdn.jsdelivr.net",
+    "pypi.org", "files.pythonhosted.org", "api.heygen.com",
+]
+
 
 def main() -> int:
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
@@ -53,7 +63,8 @@ def main() -> int:
     it = client.interactions.create(
         agent="antigravity-preview-05-2026",
         tools=[{"type": "code_execution"}, {"type": "google_search"}],
-        environment={"type": "remote", "sources": sources, "network": {"allowlist": [{"domain": "*"}]}},
+        environment={"type": "remote", "sources": sources,
+                     "network": {"allowlist": [{"domain": d} for d in ALLOWLIST]}},
         input=prompt,
         timeout=2400,
     )

@@ -37,20 +37,46 @@ Then decide, in priority order:
 1. **User override** — prompt says "render locally" / "use local" → local (only
    if the env supports it; if not, say so and fall back to cloud). Prompt says
    "use cloud" / "cloud render" → cloud, always.
-2. **Free composition** — you authored net-new HTML beyond a starter (custom
-   animation the starters can't express). That needs local Chrome to lint /
-   render. If the env supports local → local. If not → cloud render with a
-   warning that a freely-authored composition may not render exactly right
-   without local Chrome.
+2. **Free composition** — decided by the explicit classification below (not a
+   keyword guess). If free-composition is required AND the env supports local →
+   local. If required but the env lacks Chrome+CLI → cloud with a degradation
+   warning (a freely-authored composition may not render exactly right without
+   local Chrome).
 3. **Default → cloud.** Fast, no broad allowlist, shareable URL. The path for
    every normal starter-based video.
 
-Decision tree:
+### Classify: is free-composition required? (explicit, not keyword-matching)
+
+Substring matching is wrong here — "kinetic-text social promo" sounds
+authoring-heavy but the social-promo starter already does kinetic text (no
+free-auth), while "animate the React useState hook with code samples" sounds
+simple but needs custom code-block animation (free-auth). So **make the call
+explicitly**: answer this in one line before routing —
+
+> *"Does this prompt require free-form HTML/CSS/GSAP authoring beyond what a
+> starter + its variables can express? Answer yes/no with one sentence of
+> reasoning."*
+
+`yes` → free-composition. `no` → a starter fits; use it (cloud). Record the
+answer + reasoning (it goes in the render result for debugging).
+
+Decision tree (after the classification):
 - user "local" AND env has Chrome+CLI → **local**
 - user "cloud" → **cloud**
-- free-composition needed AND env has Chrome+CLI → **local**
-- free-composition needed AND env missing Chrome+CLI → **cloud** + degradation warning
+- free-composition = yes AND env has Chrome+CLI → **local**
+- free-composition = yes AND env missing Chrome+CLI → **cloud** + degradation warning
 - otherwise → **cloud**
+
+### Token budget
+
+Local + free-composition renders are token-expensive (free-auth can burn
+millions of tokens — author + lint + validate + render iterations). Respect a
+budget: read `MAX_TOKENS_PER_RENDER` (default 4,000,000). Keep a rough running
+count of tokens spent; as you approach the ceiling, **stop gracefully and warn**
+("approaching the token budget — increase MAX_TOKENS_PER_RENDER or simplify the
+prompt") rather than running silently to exhaustion. Report total tokens spent
+in your final summary so the user sees the cost (local is far pricier than
+cloud — see docs/local-mode.md).
 
 ## Cloud path
 
@@ -86,8 +112,26 @@ So a deploy that wants shareable local-render URLs sets `GCS_BUCKET` (+ GCP
 auth). If `video_url` is a `file://`, tell the user it rendered locally and the
 file lives in the sandbox. Note the render time (local is slower than cloud).
 
+## When local render fails
+
+`render_local.py` raises on a nonzero exit / timeout / missing output. Handle by
+failure mode — **the general rule is: fall back to cloud render when the failure
+is environmental, surface + fix when it's the composition.**
+
+| Failure | What it means | Do |
+|---|---|---|
+| Chrome crashes mid-render | Environmental (sandbox/Chrome) | Retry local **once**; if it crashes again, **fall back to cloud render** and tell the user it rendered on the cloud instead. |
+| `hyperframes lint` fails on your authored HTML | The composition is malformed (your bug) | **Fix the HTML** per the lint message and re-render. Don't fall back — cloud would fail the same way. |
+| GSAP runtime error at page-init | Composition bug (bad selector, non-deterministic code, CDN GSAP) | Fix it — most commonly: load GSAP from the local cache (`/workspace/.cache/libs/gsap.min.js`), not a CDN; remove `Math.random()`/`Date.now()`. Re-render. |
+| Local render exceeds its timeout (20 min) | Too-heavy composition or a stuck Chrome | Fall back to cloud if the composition is starter-based; if it's free-auth, simplify and retry, and warn the user. |
+| Token budget approached | Free-auth ran long | Stop gracefully, return what you have or fall back to cloud, and warn (see Token budget above). |
+
+Always prefer returning *something* (a cloud-rendered video + a note) over
+returning nothing. Never paste a raw stack trace.
+
 ## Returning the result
 
 Lead with the playable URL (cloud) or the uploaded URL (local). Mention the
-duration. If you rendered locally, it's fine to note it took longer. On a
-failure, show the API/CLI `failure_message` plainly — never a raw stack trace.
+duration. If you rendered locally, it's fine to note it took longer. If you fell
+back from local to cloud, say so briefly. On a failure, show the API/CLI
+`failure_message` plainly — never a raw stack trace.

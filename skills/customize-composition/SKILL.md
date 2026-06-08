@@ -51,6 +51,22 @@ at render time — the composition reads them with
      "$(cat /.agents/workspace/output/voiceover_url.txt 2>/dev/null)"
    ```
 
+   **Free-composition case:** the shipped starters already have the voiceover
+   `<audio>` slot. But if you **free-authored** the composition's HTML (custom
+   video, not a starter), you MUST include the same slot or the video renders
+   silent — `apply_voiceover.py` only substitutes a slot that exists. Put this
+   inside the composition root, near the other timed elements, with the literal
+   placeholder src (apply_voiceover fills it; it's stripped if there's no
+   narration):
+
+   ```html
+   <audio id="voiceover" data-start="0" data-duration="<comp-duration>"
+          data-track-index="0" data-volume="1" src="__VOICEOVER_URL__"></audio>
+   ```
+
+   (Do NOT use `data-has-audio` or `data-composition-variable` — the renderer
+   reads a static `src`; the placeholder + apply_voiceover is the working path.)
+
 ## Multi-turn edits
 
 On a follow-up ("make the headline punchier", "switch to a dark background"),
