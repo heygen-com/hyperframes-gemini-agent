@@ -77,13 +77,21 @@ def _publish(path: str) -> dict:
         # Lazy import so the dep is only needed when uploading. Auth via
         # GOOGLE_APPLICATION_CREDENTIALS (service-account JSON) or workload
         # identity if the sandbox provides it.
+        from datetime import timedelta
+
         from google.cloud import storage  # type: ignore
 
         key = f"hyperframes/{os.path.basename(os.path.dirname(path)) or 'render'}/{os.path.basename(path)}"
         blob = storage.Client().bucket(bucket).blob(key)
         blob.upload_from_filename(path)
-        blob.make_public()
-        return {"video_url": blob.public_url, "gcs_uri": f"gs://{bucket}/{key}"}
+        # Signed URL, NOT make_public(): buckets created after 2024 default to
+        # Uniform Bucket-Level Access, which rejects per-object ACLs (make_public
+        # would fail). A signed URL also avoids permanent unauthenticated access —
+        # TTL matches the base-env's ~7-day lifetime. (Needs signing creds: a
+        # service-account key, or IAM signBlob; if unavailable this raises and we
+        # fall back to file:// below with upload_error.)
+        url = blob.generate_signed_url(version="v4", expiration=timedelta(days=7), method="GET")
+        return {"video_url": url, "gcs_uri": f"gs://{bucket}/{key}", "url_ttl_days": 7}
     except Exception as exc:  # noqa: BLE001 — surface upload failure but keep the local file
         return {"video_url": f"file://{path}", "upload_error": f"{type(exc).__name__}: {exc}"}
 

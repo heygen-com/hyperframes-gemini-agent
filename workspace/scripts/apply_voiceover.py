@@ -32,6 +32,21 @@ def apply(comp_dir: str, voiceover_url: str) -> str:
         raise SystemExit(f"No index.html in {comp_dir}")
     html = open(index, encoding="utf-8").read()
 
+    # Catch the silent free-comp footgun regardless of narration state: if the
+    # composition has neither the voiceover placeholder nor ANY <audio> element,
+    # a free-authored comp likely forgot the slot → it will render silent with no
+    # other signal. Warn (don't hard-fail — a deliberately silent video is valid).
+    has_placeholder = PLACEHOLDER in html
+    has_any_audio = re.search(r"<audio\b", html, re.IGNORECASE) is not None
+    if not has_placeholder and not has_any_audio:
+        print(
+            f"WARNING: {index} has no {PLACEHOLDER} slot and no <audio> element. "
+            'If this is a free-authored composition it will render SILENT — add '
+            '<audio id="voiceover" data-start="0" data-track-index="0" '
+            'src="__VOICEOVER_URL__"></audio> to enable voiceover.',
+            file=sys.stderr,
+        )
+
     url = (voiceover_url or "").strip()
     if url:
         if PLACEHOLDER not in html:

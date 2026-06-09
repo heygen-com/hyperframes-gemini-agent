@@ -66,6 +66,11 @@ explicitly**: answer this in one line before routing —
 `yes` → free-composition. `no` → a starter fits; use it (cloud). Record the
 answer + reasoning (it goes in the render result for debugging).
 
+**Safe default — any ambiguity routes to cloud.** If the classification is
+unclear, comes back malformed, times out, or you're genuinely unsure → treat it
+as `no` (cloud). Cloud is fast and cheap, so the bias belongs on the cheap side;
+never default to the expensive local path on uncertainty.
+
 Decision tree (after the classification):
 - user "local" AND env has Chrome+CLI → **local**
 - user "cloud" → **cloud**
@@ -77,14 +82,18 @@ Decision tree (after the classification):
 
 Local + free-composition renders are token-expensive (free-auth can burn
 millions of tokens — author + lint + validate + render iterations). Respect a
-budget: read `MAX_TOKENS_PER_RENDER` (default 4,000,000). Keep a rough running
-count of tokens spent. This is **enforced, not advisory**: once the count
-crosses the ceiling, **abort the render with a clean error** — do not keep
-going. Return: "Stopped at the token budget (`MAX_TOKENS_PER_RENDER`). Increase
-it or simplify the prompt (free-composition is the expensive path)." Surface
-whatever partial work exists, but do not silently run to exhaustion. Always
-report total tokens spent in your final summary so the user sees the cost (local
-is far pricier than cloud — see docs/local-mode.md).
+budget: `MAX_TOKENS_PER_RENDER` (default 6,000,000 — generous; Trace free-auth
+burned ~3.2M). Keep a rough running sense of tokens spent; as you approach the
+ceiling, **stop expanding scope, wrap up with what you have, and warn the user**
+("approaching the token budget — increase `MAX_TOKENS_PER_RENDER` or simplify
+the prompt; free-composition is the expensive path") rather than spiraling into
+more authoring iterations. Always report total tokens spent in your final
+summary so the user sees the cost.
+
+This in-agent guard is **best-effort** (the agent self-monitors; it can't see
+its exact token count mid-run). True hard enforcement belongs at the
+orchestration layer — a streaming watchdog on `interaction.usage` that aborts
+when the ceiling is crossed — tracked as a follow-up (see docs/local-mode.md).
 
 ## Cloud path
 

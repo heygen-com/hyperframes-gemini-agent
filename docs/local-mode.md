@@ -31,13 +31,27 @@ This installs Chrome, chrome-headless-shell, the hyperframes CLI, ffmpeg, and a
 local GSAP cache, then snapshots the environment (reuse the saved `env_id` for
 ~7 days — no reinstall per render).
 
+**Reusing the base env — omit `tools`.** To run against the snapshot, pass the
+saved id as the environment:
+
+```python
+client.interactions.create(agent="antigravity-preview-05-2026",
+                           environment="<env_id>", input=prompt)   # NO tools=[...]
+```
+
+Do **not** pass `tools=[...]` on a reuse call — it returns a server 500
+(`api_error: Unknown Error`). The antigravity base agent has code-execution
+natively, so it runs bash without an explicit tools list. `tools` is only
+passed on the initial env-*creating* call (`snapshot.py`), and is optional even
+there.
+
 ## Environment variables
 
 | Var | Purpose | Default |
 |---|---|---|
 | `GCS_BUCKET` | Upload local renders to GCS + return a public URL. Without it, local renders produce a sandbox `file://` path only (not user-shareable). | unset → file path |
 | `GOOGLE_APPLICATION_CREDENTIALS` | GCP auth for the GCS upload (service-account JSON), or workload identity. | — |
-| `MAX_TOKENS_PER_RENDER` | Graceful token-budget ceiling; the agent stops + warns as it approaches. | 4,000,000 |
+| `MAX_TOKENS_PER_RENDER` | Soft token-budget ceiling; the agent self-monitors, wraps up + warns as it approaches (best-effort — see note). | 6,000,000 |
 | `HYPERFRAMES_BROWSER_PATH` | Headless Chrome path (set by setup). | `/usr/bin/chrome-headless-shell` |
 
 ## Cost + latency expectations
@@ -52,8 +66,12 @@ Local render is **much heavier than cloud** (measured on the spike):
 | Output | CDN URL | sandbox file (or GCS URL if configured) |
 
 Budget accordingly: a free-composition local render can take half an hour and
-burn millions of tokens. The `MAX_TOKENS_PER_RENDER` guard prevents silent
-runaway. If you're on a metered Gemini plan, watch the cost.
+burn millions of tokens. The `MAX_TOKENS_PER_RENDER` guard is **best-effort**
+today — the agent self-monitors and wraps up as it nears the ceiling, but it
+can't see its exact mid-run token count. **Follow-up:** a hard watchdog at the
+orchestration layer (stream the interaction, read `interaction.usage` between
+events, abort on breach) for true enforcement. If you're on a metered Gemini
+plan, watch the cost.
 
 ## Security note
 

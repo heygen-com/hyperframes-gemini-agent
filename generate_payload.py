@@ -130,13 +130,19 @@ def _render_allowlist_entry() -> dict:
 
 
 def build_payload(prompt: str, environment_id: str | None) -> dict:
+    allowlist = [_render_allowlist_entry()]
+    # If local-mode GCS upload is configured, the render env also needs the GCS
+    # hosts at RUNTIME — the closed allowlist in base-env/snapshot.py is
+    # install-time only, so without this the upload is silently blocked.
+    if os.environ.get("GCS_BUCKET"):
+        allowlist += [{"domain": "storage.googleapis.com"}, {"domain": "oauth2.googleapis.com"}]
     payload: dict = {
         "input": prompt,
         "agent": BASE_AGENT,
         "environment": {
             "type": "remote",
             "sources": collect_sources(),
-            "network": {"allowlist": [_render_allowlist_entry()]},
+            "network": {"allowlist": allowlist},
         },
     }
     # Reuse a persistent sandbox across turns for multi-turn iteration.
