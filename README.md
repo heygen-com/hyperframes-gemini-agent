@@ -24,8 +24,17 @@ The agent is a thin authoring-and-dispatch layer. It runs four steps:
 4. **Render and return** — send it to HeyGen's render API and give you back the
    video URL.
 
-The heavy lifting (browser, encoding, hosting) all happens on HeyGen's side.
-The agent never renders locally.
+By default the heavy lifting (browser, encoding, hosting) happens on HeyGen's
+cloud — fast, cheap, and it returns a shareable URL. That's the path for almost
+every video.
+
+There's also an **opt-in local render mode** for advanced use (free-form
+composition authoring beyond the starters, or website capture): it installs
+Chrome + the `hyperframes` CLI into a heavy "base environment" and renders
+in-sandbox. It's much slower and pricier (~15–30 min, far more tokens) and needs
+a broader network allowlist, so it's strictly opt-in — see
+[docs/local-mode.md](docs/local-mode.md). The agent picks cloud vs local at
+runtime; cloud is the default and the only path in a normal environment.
 
 ## Starter compositions
 

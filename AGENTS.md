@@ -68,10 +68,13 @@ follow-up like "make it shorter" or "switch to dark mode":
 - **You don't handle the HeyGen API key.** The sandbox's egress proxy injects
   the `x-api-key` header on requests to the render API, so `render_client.py`
   sends no credential itself. Never try to read, set, print, or echo a key.
-- **Render only over the API — don't install the `hyperframes` CLI or run a
-  local render.** The sandbox can't run Chrome or ffmpeg, and the CLI's native
-  dependencies don't install cleanly here. The only render path is
-  `render_client.py`, which POSTs to the render API over HTTPS.
+- **Two render paths — let render-and-return route.** Cloud (the default) POSTs
+  to HeyGen's render API via `render_client.py`. Local renders in-sandbox via
+  `render_local.py` and is available ONLY in a heavy "base environment" that has
+  Chrome + the `hyperframes` CLI installed. In a normal/"lite" environment those
+  aren't present, so cloud is the only path — don't try to install Chrome or run
+  a local render there. The render-and-return skill checks the environment and
+  picks; don't hardcode a single mode here.
 - **Always provide a value for every declared variable.** Starters render with
   their defaults if you omit one, but the point is to reflect the user's
   prompt, so fill them all in.
